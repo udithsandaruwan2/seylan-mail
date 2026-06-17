@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Mailroom Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <h1 class="text-2xl font-bold mb-6">Mailroom Dashboard</h1>
+    
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-4 gap-4 mb-6">
+        <div class="bg-white p-4 rounded-lg shadow">
+            <p class="text-sm text-gray-500">Incoming Queue</p>
+            <p class="text-2xl font-bold text-blue-600">{{ incoming_queue.count }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow">
+            <p class="text-sm text-gray-500">Pending Approval</p>
+            <p class="text-2xl font-bold text-yellow-600">{{ pending_approval.count }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow">
+            <p class="text-sm text-gray-500">Recent Scans</p>
+            <p class="text-2xl font-bold text-green-600">{{ recent_scans.count }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow">
+            <p class="text-sm text-gray-500">Total Today</p>
+            <p class="text-2xl font-bold text-purple-600">
+                {% load tz %}{{ incoming_queue|length }}
+            </p>
+        </div>
+    </div>
+    
+    <!-- Incoming Queue -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h2 class="text-xl font-bold mb-4">Incoming Queue</h2>
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead>
+                <tr>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Reference</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Subject</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Sender</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Status</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mail in incoming_queue %}
+                <tr>
+                    <td class="px-4 py-2 text-sm">{{ mail.reference_number }}</td>
+                    <td class="px-4 py-2 text-sm">{{ mail.subject|truncatechars:30 }}</td>
+                    <td class="px-4 py-2 text-sm">
+                        {% if mail.sender_branch %}{{ mail.sender_branch.name }}
+                        {% elif mail.sender_department %}{{ mail.sender_department.name }}
+                        {% else %}-{% endif %}
+                    </td>
+                    <td class="px-4 py-2 text-sm">
+                        <span class="px-2 py-1 text-xs rounded-full {% get_status_badge_class mail.status %}">
+                            {{ mail.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-2 text-sm">
+                        <a href="{% url 'mailroom:receive' mail.pk %}" class="text-green-600 hover:text-green-900">Receive</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="px-4 py-2 text-center text-gray-500">No incoming mail</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pending Approval -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h2 class="text-xl font-bold mb-4">Pending Approval</h2>
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead>
+                <tr>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Reference</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Subject</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Received At</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mail in pending_approval %}
+                <tr>
+                    <td class="px-4 py-2 text-sm">{{ mail.reference_number }}</td>
+                    <td class="px-4 py-2 text-sm">{{ mail.subject|truncatechars:30 }}</td>
+                    <td class="px-4 py-2 text-sm">{{ mail.created_at|date:"M d, H:i" }}</td>
+                    <td class="px-4 py-2 text-sm">
+                        <a href="{% url 'mailroom:approve' mail.pk %}" class="text-purple-600 hover:text-purple-900">Approve</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="px-4 py-2 text-center text-gray-500">No pending approvals</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Recent Scans -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-bold mb-4">Recent Scans</h2>
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead>
+                <tr>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Reference</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Scanned By</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in recent_scans %}
+                <tr>
+                    <td class="px-4 py-2 text-sm">{{ log.mail.reference_number }}</td>
+                    <td class="px-4 py-2 text-sm">{{ log.changed_by.username|default:"System" }}</td>
+                    <td class="px-4 py-2 text-sm">{{ log.timestamp|date:"M d, H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" class="px-4 py-2 text-center text-gray-500">No recent scans</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

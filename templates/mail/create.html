@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Mail{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <h1 class="text-2xl font-bold mb-6">Create New Mail</h1>
+    
+    <form method="post" class="bg-white p-6 rounded-lg shadow">
+        {% csrf_token %}
+        
+        <div class="mb-4">
+            <label class="block text-sm font-medium mb-2">Origin Type</label>
+            {{ form.origin_type }}
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-sm font-medium mb-2">Recipient Type</label>
+            {{ form.recipient_type }}
+        </div>
+        
+        <div class="mb-4" id="recipient_department_field">
+            <label class="block text-sm font-medium mb-2">Recipient Department</label>
+            <select name="recipient_department" class="border rounded px-3 py-2 w-full">
+                <option value="">Select Department</option>
+                {% for dept in departments %}
+                    <option value="{{ dept.id }}">{{ dept.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="mb-4 hidden" id="recipient_branch_field">
+            <label class="block text-sm font-medium mb-2">Recipient Branch</label>
+            <select name="recipient_branch" class="border rounded px-3 py-2 w-full">
+                <option value="">Select Branch</option>
+                {% for branch in branches %}
+                    <option value="{{ branch.id }}">{{ branch.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-sm font-medium mb-2">Subject</label>
+            {{ form.subject }}
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-sm font-medium mb-2">Description</label>
+            {{ form.description }}
+        </div>
+        
+        <div class="mb-6">
+            <label class="block text-sm font-medium mb-2">Notes (Optional)</label>
+            {{ form.notes }}
+        </div>
+        
+        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+            Create Mail & Generate QR
+        </button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const recipientType = document.querySelector('input[name="recipient_type"]');
+    const deptField = document.getElementById('recipient_department_field');
+    const branchField = document.getElementById('recipient_branch_field');
+    
+    recipientType.addEventListener('change', function() {
+        if (this.value === 'department') {
+            deptField.classList.remove('hidden');
+            branchField.classList.add('hidden');
+        } else {
+            deptField.classList.add('hidden');
+            branchField.classList.remove('hidden');
+        }
+    });
+});
+</script>
+{% endblock %}
