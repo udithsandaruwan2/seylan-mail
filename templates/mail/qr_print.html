@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}QR Code - {{ mail.reference_number }}{% endblock %}
+
+{% block extra_css %}
+<style>
+@media print {
+    body * { visibility: hidden; }
+    #print-area, #print-area * { visibility: visible; }
+    #print-area { position: absolute; left: 0; top: 0; width: 100%; }
+    .no-print { display: none !important; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="print-area" class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow">
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold mb-2">{{ mail.reference_number }}</h1>
+        <p class="text-gray-600">{{ mail.subject }}</p>
+        <p class="text-sm text-gray-500 mt-2">Scan to track this mail</p>
+    </div>
+    
+    <div class="flex justify-center mb-8">
+        {% if mail.qr_code %}
+            <img src="{{ mail.qr_code.url }}" alt="QR Code" class="w-64 h-64">
+        {% else %}
+            <div class="w-64 h-64 bg-gray-200 flex items-center justify-center">
+                QR Code not generated
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="grid grid-cols-2 gap-4 text-sm">
+        <div>
+            <p class="text-gray-500">Sender</p>
+            <p class="font-medium">
+                {% if mail.sender_branch %}{{ mail.sender_branch.name }}
+                {% elif mail.sender_department %}{{ mail.sender_department.name }}
+                {% else %}-{% endif %}
+            </p>
+        </div>
+        <div>
+            <p class="text-gray-500">Recipient</p>
+            <p class="font-medium">
+                {% if mail.recipient_branch %}{{ mail.recipient_branch.name }}
+                {% elif mail.recipient_department %}{{ mail.recipient_department.name }}
+                {% else %}-{% endif %}
+            </p>
+        </div>
+        <div>
+            <p class="text-gray-500">Created</p>
+            <p class="font-medium">{{ mail.created_at|date:"M d, Y" }}</p>
+        </div>
+        <div>
+            <p class="text-gray-500">Status</p>
+            <p class="font-medium">{{ mail.get_status_display }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="mt-6 text-center no-print">
+    <button onclick="window.print()" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 mr-2">
+        Print QR Code
+    </button>
+    <a href="{% url 'mail:detail' mail.pk %}" class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700">
+        Back to Details
+    </a>
+</div>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}Mail Details - {{ mail.reference_number }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <h1 class="text-2xl font-bold">{{ mail.reference_number }}</h1>
+                <p class="text-gray-600">{{ mail.subject }}</p>
+            </div>
+            <span class="px-3 py-1 rounded-full text-sm {% get_status_badge_class mail.status %}">
+                {{ mail.get_status_display }}
+            </span>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+                <p class="text-sm text-gray-500">Origin Type</p>
+                <p class="font-medium">{{ mail.get_origin_type_display }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Created At</p>
+                <p class="font-medium">{{ mail.created_at|date:"M d, Y H:i" }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Sender</p>
+                <p class="font-medium">
+                    {% if mail.sender_branch %}{{ mail.sender_branch.name }}
+                    {% elif mail.sender_department %}{{ mail.sender_department.name }}
+                    {% else %}-{% endif %}
+                </p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Recipient</p>
+                <p class="font-medium">
+                    {% if mail.recipient_branch %}{{ mail.recipient_branch.name }}
+                    {% elif mail.recipient_department %}{{ mail.recipient_department.name }}
+                    {% else %}-{% endif %}
+                </p>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <p class="text-sm text-gray-500">Description</p>
+            <p>{{ mail.description }}</p>
+        </div>
+        
+        {% if mail.notes %}
+        <div class="mb-4">
+            <p class="text-sm text-gray-500">Notes</p>
+            <p>{{ mail.notes }}</p>
+        </div>
+        {% endif %}
+        
+        <div class="flex gap-2 mt-6">
+            <a href="{% url 'mail:qr_print' mail.pk %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                View QR Code
+            </a>
+            {% if can_receive %}
+                <a href="{% url 'mailroom:receive' mail.pk %}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                    Receive at Mailroom
+                </a>
+            {% endif %}
+            {% if can_approve %}
+                <a href="{% url 'mailroom:approve' mail.pk %}" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+                    Approve & Route
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Status Timeline -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-bold mb-4">Status Timeline</h2>
+        <div class="space-y-4">
+            {% for log in status_logs %}
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                        ✓
+                    </div>
+                    <div class="ml-4 flex-1">
+                        <div class="flex justify-between">
+                            <p class="font-medium">{{ log.get_status_display }}</p>
+                            <p class="text-sm text-gray-500">{{ log.timestamp|date:"M d, Y H:i" }}</p>
+                        </div>
+                        {% if log.changed_by %}
+                            <p class="text-sm text-gray-600">By: {{ log.changed_by.username }}</p>
+                        {% endif %}
+                        {% if log.note %}
+                            <p class="text-sm text-gray-500 mt-1">{{ log.note }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-gray-500">No status logs yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

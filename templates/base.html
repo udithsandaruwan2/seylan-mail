@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Bank Mail Management System{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-100">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-gray-800 text-white no-print flex-shrink-0">
+            <div class="p-4">
+                <h1 class="text-xl font-bold">📬 Bank Mail System</h1>
+                {% if user.is_authenticated %}
+                    <p class="text-sm text-gray-400 mt-2">{{ user.username }}</p>
+                    {% if user_role %}
+                        <p class="text-xs text-gray-500">{{ user_role|replace:"_"," "|title }}</p>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <nav class="mt-4">
+                {% if user.is_authenticated %}
+                    <a href="/" class="block px-4 py-2 hover:bg-gray-700 {% if request.resolver_match.url_name == 'dashboard' %}bg-gray-700{% endif %}">
+                        📊 Dashboard
+                    </a>
+                    
+                    {% if user_role in "branch_officer,mailroom_staff,mailroom_admin,system_admin" %}
+                        <a href="{% url 'mail:create' %}" class="block px-4 py-2 hover:bg-gray-700 {% if request.resolver_match.url_name == 'create' %}bg-gray-700{% endif %}">
+                            ✉️ Create Mail
+                        </a>
+                        <a href="{% url 'mail:list' %}" class="block px-4 py-2 hover:bg-gray-700 {% if request.resolver_match.url_name == 'list' %}bg-gray-700{% endif %}">
+                            📋 Mail List
+                        </a>
+                        <a href="{% url 'mail:scan' %}" class="block px-4 py-2 hover:bg-gray-700 {% if request.resolver_match.url_name == 'scan' %}bg-gray-700{% endif %}">
+                            📷 Scan QR
+                        </a>
+                    {% endif %}
+                    
+                    {% if user_role in "mailroom_staff,mailroom_admin,system_admin" %}
+                        <a href="{% url 'mailroom:dashboard' %}" class="block px-4 py-2 hover:bg-gray-700 {% if 'mailroom' in request.resolver_match.url_name %}bg-gray-700{% endif %}">
+                            🏢 Mailroom
+                        </a>
+                    {% endif %}
+                    
+                    {% if user_role in "cau_officer,cau_admin,system_admin" %}
+                        <a href="{% url 'cau:inbox' %}" class="block px-4 py-2 hover:bg-gray-700 {% if request.resolver_match.url_name == 'inbox' %}bg-gray-700{% endif %}">
+                            📥 CAU Inbox
+                        </a>
+                        <a href="{% url 'cau:wallet_list' %}" class="block px-4 py-2 hover:bg-gray-700 {% if 'wallet' in request.resolver_match.url_name %}bg-gray-700{% endif %}">
+                            🗄️ Wallet
+                        </a>
+                    {% endif %}
+                    
+                    {% if user_role in "cau_admin,system_admin" %}
+                        <a href="{% url 'cau:admin_dashboard' %}" class="block px-4 py-2 hover:bg-gray-700">
+                            ⚙️ CAU Admin
+                        </a>
+                    {% endif %}
+                    
+                    {% if user_role in "department_officer,system_admin" %}
+                        <a href="{% url 'dept:inbox' %}" class="block px-4 py-2 hover:bg-gray-700">
+                            📬 Dept Inbox
+                        </a>
+                    {% endif %}
+                    
+                    {% if user_role in "mailroom_admin,system_admin" %}
+                        <a href="{% url 'dashboard:mailroom_admin' %}" class="block px-4 py-2 hover:bg-gray-700">
+                            🔧 Admin Dashboard
+                        </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'logout' %}" class="block px-4 py-2 hover:bg-gray-700 mt-4 border-t border-gray-700 pt-4">
+                        🚪 Logout
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="block px-4 py-2 hover:bg-gray-700">
+                        🔐 Login
+                    </a>
+                {% endif %}
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-8">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="mb-4 p-4 rounded {% if message.tags == 'success' %}bg-green-100 text-green-800{% elif message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

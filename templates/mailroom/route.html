@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Route Mail - {{ mail.reference_number }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <h1 class="text-2xl font-bold mb-6">Route Mail to Department</h1>
+    
+    <div class="bg-white p-6 rounded-lg shadow mb-6">
+        <h2 class="text-lg font-bold mb-4">Mail Details</h2>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <p class="text-sm text-gray-500">Reference</p>
+                <p class="font-medium">{{ mail.reference_number }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Subject</p>
+                <p class="font-medium">{{ mail.subject }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <form method="post" class="bg-white p-6 rounded-lg shadow">
+        {% csrf_token %}
+        
+        <div class="mb-4">
+            <label class="block text-sm font-medium mb-2">Select Department</label>
+            <select name="recipient_department" class="border rounded px-3 py-2 w-full" required>
+                <option value="">-- Select Department --</option>
+                {% for dept in departments %}
+                    <option value="{{ dept.id }}">{{ dept.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-sm font-medium mb-2">Notes</label>
+            <textarea name="notes" rows="3" class="border rounded px-3 py-2 w-full"></textarea>
+        </div>
+        
+        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+            Route Mail
+        </button>
+    </form>
+</div>
+{% endblock %}

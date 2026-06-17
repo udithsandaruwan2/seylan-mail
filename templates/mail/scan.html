@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Scan QR Code{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <h1 class="text-2xl font-bold mb-6">Scan QR Code</h1>
+    
+    <div class="bg-white p-6 rounded-lg shadow mb-6">
+        <form method="post" class="mb-4">
+            {% csrf_token %}
+            <div class="flex gap-2">
+                <input 
+                    type="text" 
+                    name="reference_number" 
+                    placeholder="Enter reference number or scan QR"
+                    class="flex-1 border rounded px-3 py-2"
+                    value="{{ ref }}"
+                    autofocus
+                >
+                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                    Search
+                </button>
+            </div>
+        </form>
+        
+        <p class="text-sm text-gray-500">
+            You can either scan a QR code (which will auto-fill the reference) or manually enter the reference number.
+        </p>
+    </div>
+    
+    {% if error %}
+        <div class="bg-red-100 text-red-800 p-4 rounded mb-6">
+            {{ error }}
+        </div>
+    {% endif %}
+    
+    {% if mail %}
+        <div class="bg-white p-6 rounded-lg shadow">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h2 class="text-xl font-bold">{{ mail.reference_number }}</h2>
+                    <p class="text-gray-600">{{ mail.subject }}</p>
+                </div>
+                <span class="px-3 py-1 rounded-full text-sm {% get_status_badge_class mail.status %}">
+                    {{ mail.get_status_display }}
+                </span>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <p class="text-sm text-gray-500">Sender</p>
+                    <p class="font-medium">
+                        {% if mail.sender_branch %}{{ mail.sender_branch.name }}
+                        {% elif mail.sender_department %}{{ mail.sender_department.name }}
+                        {% else %}-{% endif %}
+                    </p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Recipient</p>
+                    <p class="font-medium">
+                        {% if mail.recipient_branch %}{{ mail.recipient_branch.name }}
+                        {% elif mail.recipient_department %}{{ mail.recipient_department.name }}
+                        {% else %}-{% endif %}
+                    </p>
+                </div>
+            </div>
+            
+            <a href="{% url 'mail:detail' mail.pk %}" class="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                View Full Details
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
